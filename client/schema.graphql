@@ -1,15 +1,661 @@
-  type Query {
-    hello: Hello!
-    deferred: Deferred!
-  }
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
 
-  type Hello {
-      message: String
-  }
+"This allows you to hydrate new values into fields"
+directive @hydrated(
+    "The arguments to the hydrated field"
+    arguments: [NadelHydrationArgument!], 
+    "The batch size"
+    batchSize: Int = 200, 
+    "The target top level field"
+    field: String!, 
+    "How to identify matching results"
+    identifiedBy: String! = "id", 
+    "Are results indexed"
+    indexed: Boolean = false, 
+    "The target service"
+    service: String!
+  ) on FIELD_DEFINITION
 
-  type Deferred {
-      message: String
-  }
+"This allows you to rename a type or field in the overall schema"
+directive @renamed(
+    "The type to be renamed"
+    from: String!
+  ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | UNION | ENUM | INPUT_OBJECT
 
-  directive @defer(label: String!) on INLINE_FRAGMENT | FRAGMENT_SPREAD
-  directive @custom on INLINE_FRAGMENT | FRAGMENT_SPREAD
+directive @CloudID on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @ARI(interpreted: Boolean = false, owner: String!, type: String!, usesActivationId: Boolean! = false) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @value(val: String!) on ENUM_VALUE
+
+directive @scopes(product: GrantCheckProduct, required: [Scope!]!) on OBJECT | FIELD_DEFINITION
+
+directive @atlassian on FIELD_DEFINITION
+
+directive @namespaced on FIELD_DEFINITION
+
+"""
+This directive can be placed on fields so that consumers need to opt in to using them
+via a HTTP header.
+
+See https://developer.atlassian.com/platform/graphql-gateway/ for more details
+"""
+directive @beta(name: String!) on FIELD_DEFINITION
+
+"""
+Streamhub AVI to listen to in subscription request
+One subscription can only listen to one AVI
+"""
+directive @eventAVI(name: String) on FIELD_DEFINITION
+
+"The vanilla graphql query to call to enrich data when receiving Streamhub event"
+directive @eventEnrichmentQuery(name: String) on FIELD_DEFINITION
+
+"This cloudId extracted from streamHub event as calling argument"
+directive @eventCloudId on ARGUMENT_DEFINITION
+
+directive @rateLimit(cost: Int!, currency: RateLimitingCurrency!) on FIELD_DEFINITION
+
+directive @disabled on ENUM_VALUE
+
+"""
+This directive can be applied to a schema element to indicate that it belongds to a particular api group
+
+This is used by our documentation tooling to group together types and fields into logical groups
+"""
+directive @apiGroup(name: ApiGroup) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | UNION | ENUM | INPUT_OBJECT
+
+"Indicates that the field uses dynamic service resolution. This directive should only be used in commons fields, i.e. fields that are not part of a particular service."
+directive @dynamicServiceResolution on FIELD_DEFINITION
+
+directive @defer(label: String!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+interface LocalizationContext {
+  locale: String
+  zoneinfo: String
+}
+
+"""
+A mutation response interface.
+
+According to the Atlassian standards, all mutations should return a type which implements this interface.
+
+[Apollo GraphQL Documentation](https://www.apollographql.com/docs/apollo-server/essentials/schema#mutation-responses)
+"""
+interface MutationResponse {
+  " A message for this mutation"
+  message: String!
+  " A numerical code (as a HTTP status code) representing the status of the mutation"
+  statusCode: Int!
+  " Was this mutation successful"
+  success: Boolean!
+}
+
+interface Node {
+  id: ID!
+}
+
+interface User {
+  accountId: ID!
+  accountStatus: AccountStatus!
+  name: String!
+  picture: URL!
+}
+
+type AppUser implements User {
+  accountId: ID!
+  accountStatus: AccountStatus!
+  name: String!
+  picture: URL!
+}
+
+type AtlassianAccountUser implements LocalizationContext & User {
+  accountId: ID!
+  accountStatus: AccountStatus!
+  createdAt: DateTime
+  email: String
+  locale: String
+  name: String!
+  picture: URL!
+  zoneinfo: String
+}
+
+type AuthenticationContext {
+  user: User
+}
+
+type BetaIssue {
+  id: ID!
+  keyword: String!
+  user: TestUser
+}
+
+type Comment {
+  comments: [Comment]
+  id: ID!
+  text: String!
+  user: TestUser
+}
+
+type CustomerUser implements LocalizationContext & User {
+  accountId: ID!
+  accountStatus: AccountStatus!
+  email: String
+  locale: String
+  name: String!
+  picture: URL!
+  zoneinfo: String
+}
+
+type Epic @apiGroup(name : JIRA) {
+  id: ID!
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __epic:view_title__
+  """
+  title: String @rateLimit(cost : 4, currency : ISSUES_SERVICE) @scopes(required : [EPIC_VIEW_TITLE])
+}
+
+"Generic implementation of MutationResponse for responses that don't need any extra data"
+type GenericMutationResponse implements MutationResponse {
+  message: String!
+  statusCode: Int!
+  success: Boolean!
+}
+
+type Issue @apiGroup(name : JIRA) {
+  """
+  
+  
+  
+  This field is **deprecated** and will be removed in the future
+  """
+  deprecatedField: String @deprecated(reason : "No longer supported")
+  """
+  
+  
+  
+  This field is **deprecated** and will be removed in the future
+  """
+  deprecatedField2: String @deprecated(reason : "Some long reason")
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __issue:view_epic__
+  """
+  epic: Epic @scopes(required : [ISSUE_VIEW_EPIC])
+  id: ID!
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __read:jira-epics__
+  """
+  jiraEpic: JiraEpic @scopes(product : JIRA, required : [READ_JIRA_EPICS])
+  jiraProject: JiraProject
+  jiraProjectWithScopes: JiraProject @renamed(from : "jiraProject")
+  keyword: String! @renamed(from : "key")
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __issue:view_linked_issues__
+  """
+  linkedIssueIds: [ID] @scopes(required : [ISSUE_VIEW_LINKED_ISSUES])
+  " Shows how recursive stitching may work"
+  linkedIssues: [Issue] @hydrated(arguments : [{name : "issueIds", value : "$source.linkedIssueIds"}], batchSize : 200, field : "batchIssueById", identifiedBy : "id", indexed : false, service : "Issues")
+  linkedJiraEpic: JiraEpic @hydrated(arguments : [{name : "epicId", value : "$source.linkedJiraEpicId"}], batchSize : 200, field : "jiraEpic", identifiedBy : "id", indexed : false, service : "Issues")
+  project: Project
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __issue:view_user__
+  """
+  user: TestUser @hydrated(arguments : [{name : "userId", value : "$source.userId"}], batchSize : 200, field : "userById", identifiedBy : "id", indexed : false, service : "Users") @rateLimit(cost : 4, currency : ISSUES_SERVICE) @scopes(required : [ISSUE_VIEW_USER])
+}
+
+type JiraEpic @apiGroup(name : JIRA) {
+  id: ID!
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __read:restricted-epic-field__
+  """
+  restricted: String @scopes(product : JIRA, required : [READ_RESTRICTED_EPIC_FIELD])
+  title: String
+}
+
+type JiraIssue @apiGroup(name : JIRA) {
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __read:jira-epics__
+  """
+  epic: JiraEpic @scopes(product : JIRA, required : [READ_JIRA_EPICS])
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __read:hydrated-field__
+  """
+  hydrateSelf: JiraIssue @hydrated(arguments : [{name : "issueId", value : "$source.id"}], batchSize : 200, field : "jiraIssue", identifiedBy : "id", indexed : false, service : "Issues") @scopes(product : JIRA, required : [READ_HYDRATED_FIELD])
+  hydrateSelfThroughArgument(issueId: ID!): JiraIssue @hydrated(arguments : [{name : "issueId", value : "$argument.issueId"}, {name : "dummy", value : "$source.id"}], batchSize : 200, field : "jiraIssue", identifiedBy : "id", indexed : false, service : "Issues")
+  id: ID!
+}
+
+"""
+
+
+### OAuth Scopes
+
+The following scopes will need to be present on OAuth requests to get data from this field
+
+* __read_jira_project__
+"""
+type JiraProject @scopes(product : JIRA, required : [READ_JIRA_PROJECT]) {
+  projectId: ID!
+  title: String!
+}
+
+type Mutation {
+  returnMessage(message: String): String @rateLimit(cost : 15, currency : TESTING_SERVICE)
+}
+
+type Page {
+  id: ID
+  title: String
+}
+
+"Relay-style PageInfo type."
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type PageQuery {
+  pageById(id: ID!): Page
+  search(token: String): SearchResult
+}
+
+"""
+
+
+### OAuth Scopes
+
+The following scopes will need to be present on OAuth requests to get data from this field
+
+* __project:view__
+"""
+type Project @scopes(required : [PROJECT_VIEW]) {
+  id: ID!
+  title: String! @rateLimit(cost : 4, currency : ISSUES_SERVICE)
+}
+
+type Query {
+  allIssues: [Issue] @apiGroup(name : JIRA)
+  allJiraIssues(cloudId: ID! @CloudID): [JiraIssue] @apiGroup(name : JIRA)
+  allUsers(spaceId: ID! @ARI(interpreted : true, owner : "user-service", type : "space", usesActivationId : false), status: [Status!]): [TestUser]
+  allUsersByCloudId(cloudId: ID @CloudID, cloudIds: [ID!] @CloudID): [TestUser]
+  allUsersComplexArgs(userSearch: UserSearch!): [TestUser]
+  batchIssueById(issueIds: [ID]): [Issue] @apiGroup(name : JIRA)
+  """
+  This is a field that has multi line comments via triple quotes
+  it can use markdown such as **bold**
+  and
+  
+  example code
+  
+  and
+  
+  ```
+  fence do dads
+  ```
+  
+  and [links](https://google.com)
+  
+  ### Beta Field
+  
+  This field is currently in a beta phase and may change without notice.  
+  
+  To use this field you must set a `X-ExperimentalApi: optin` HTTP header.
+  
+  Use of this header indicates that they are opting into the experimental preview of this field.
+  
+  If you do not set this header then request will be rejected outright.
+  
+  Once the field moves out of the beta phase, then the header will no longer be required or checked.
+  """
+  betaAllIssues: [BetaIssue] @beta(name : "optin")
+  """
+  
+  
+  ### Beta Field
+  
+  This field is currently in a beta phase and may change without notice.  
+  
+  To use this field you must set a `X-ExperimentalApi: optin` HTTP header.
+  
+  Use of this header indicates that they are opting into the experimental preview of this field.
+  
+  If you do not set this header then request will be rejected outright.
+  
+  Once the field moves out of the beta phase, then the header will no longer be required or checked.
+  """
+  betaIssueById(issueId: ID!): BetaIssue @beta(name : "optin")
+  commentsByIssueId(issueId: ID!): [Comment]
+  customScalarField(arg: CustomScalar): CustomScalar
+  delayRequest(delayTime: Int): String
+  diagnostics: JSON
+  dummyEcho: String
+  echo(message: String): String
+  error(message: String): String
+  featureFlag: Boolean
+  headers(ari: String, names: [String]): [String]
+  headersWithoutCloudId(names: [String]): [String]
+  httpConnectionRefused: String
+  httpConnectionTimesOut: String
+  httpUnknownHost: String
+  isInvalid: Boolean
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __issue:read__
+  """
+  issueByAri(dummy: ID, issueId: ID! @ARI(interpreted : false, owner : "jira", type : "issue", usesActivationId : false)): Issue @apiGroup(name : JIRA) @scopes(required : [ISSUE_READ])
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __issue:read__
+  """
+  issueById(issueId: ID!): Issue @apiGroup(name : JIRA) @scopes(required : [ISSUE_READ])
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __read:jira-epics__
+  """
+  jiraEpic(epicId: ID! @ARI(interpreted : false, owner : "jira", type : "epic", usesActivationId : false)): JiraEpic @apiGroup(name : JIRA) @scopes(product : JIRA, required : [READ_JIRA_EPICS])
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __user:view_email__
+  """
+  jiraEpicButWithEmailScope(epicId: ID!): JiraEpic @apiGroup(name : JIRA) @renamed(from : "jiraEpic") @scopes(required : [USER_VIEW_EMAIL])
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __read:jira-issues__
+  """
+  jiraIssue(issueId: ID! @ARI(interpreted : false, owner : "jira", type : "issue", usesActivationId : false)): JiraIssue @apiGroup(name : JIRA) @scopes(product : JIRA, required : [READ_JIRA_ISSUES])
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __user:view_email__
+  """
+  jiraIssueButWithConfluenceEmailScope(issueId: ID! @ARI(interpreted : false, owner : "jira", type : "issue", usesActivationId : false)): JiraIssue @apiGroup(name : JIRA) @renamed(from : "jiraIssue") @scopes(product : CONFLUENCE, required : [USER_VIEW_EMAIL])
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __read:jira-issues__
+  """
+  jiraIssueFromInput(input: IssueInputWithARI): JiraIssue @apiGroup(name : JIRA) @scopes(product : JIRA, required : [READ_JIRA_ISSUES])
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __read:jira-issues__
+  """
+  jiraIssues(ids: [ID!] @ARI(interpreted : false, owner : "jira", type : "issue", usesActivationId : false)): [JiraIssue] @apiGroup(name : JIRA) @scopes(product : JIRA, required : [READ_JIRA_ISSUES])
+  jiraProject(projectId: ID! @ARI(interpreted : false, owner : "jira", type : "project", usesActivationId : false)): JiraProject @apiGroup(name : JIRA)
+  jsonInput(json: JSON): String
+  jwt_asap: String
+  jwt_signed: String
+  jwt_unsigned: String
+  longField(arg: LongInput): Long
+  me: AuthenticationContext!
+  node(id: ID!): Node @dynamicServiceResolution
+  pageQuery: PageQuery @namespaced
+  queryThatDoesntTrustiTestClient: Boolean
+  queryThatNeedsValidation: Boolean
+  responseSize(size: Int): String
+  storiesForUser(userId: ID): [Story]
+  testUserContainer: TestUserContainer
+  throwException(message: String): String
+  topLevelQueryTest: TopLevelQueryTest!
+  user(accountId: ID!): User
+  userByAri(userAri: ID! @ARI(interpreted : false, owner : "user-service", type : "user", usesActivationId : false)): TestUser @rateLimit(cost : 10, currency : USERS_SERVICE)
+  userByAriSharded(userAri: ID! @ARI(interpreted : false, owner : "user-service", type : "user", usesActivationId : false)): TestUser
+  userByAriWithActivationId(userAri: ID! @ARI(interpreted : true, owner : "user-service", type : "user", usesActivationId : true)): TestUser @rateLimit(cost : 10, currency : USERS_SERVICE)
+  userById(userId: ID! @ARI(interpreted : true, owner : "user-service", type : "user", usesActivationId : false)): TestUser @rateLimit(cost : 1000, currency : USERS_SERVICE_DRY_RUN)
+  userByIdNested(userId: ID! @ARI(interpreted : true, owner : "user-service", type : "user", usesActivationId : false)): TestUserNested
+  users(accountIds: [ID!]!): [User!]!
+  usersById(userIds: [ID!]! @ARI(interpreted : true, owner : "user-service", type : "user", usesActivationId : false)): [TestUser!]
+  uuid: String
+  whoAreYou: String
+}
+
+type SearchResult {
+  count: Int
+  pages: [Page!]
+}
+
+type SomeOtherSharedType {
+  id: ID!
+  text: String!
+}
+
+"  SHARED TYPES FOR SERVICE GROUP 'CommentsAndIssues' "
+type SomeSharedType {
+  id: ID!
+  text: String!
+}
+
+type Story {
+  id: ID!
+  title: String
+  user: TestUser @hydrated(arguments : [{name : "userId", value : "$source.userId"}], batchSize : 200, field : "userById", identifiedBy : "id", indexed : false, service : "Users")
+}
+
+type Subscription {
+  onCommentsUpdate(issueId: ID!): [Comment]
+  onJiraIssueUpdate(projectId: ID! @ARI(interpreted : false, owner : "jira", type : "project", usesActivationId : false)): JiraProject @apiGroup(name : JIRA) @eventAVI(name : "avi:jira:updated:issue") @eventEnrichmentQuery(name : "jiraProject")
+}
+
+type TestUser implements Node {
+  """
+  
+  
+  ### OAuth Scopes
+  
+  The following scopes will need to be present on OAuth requests to get data from this field
+  
+  * __user:view_email__
+  """
+  email: String @scopes(required : [USER_VIEW_EMAIL])
+  id: ID! @ARI(interpreted : true, owner : "user-service", type : "user", usesActivationId : false)
+  idWithActivationId: ID! @ARI(interpreted : true, owner : "user-service", type : "user", usesActivationId : true)
+  uninterpretedId: ID! @ARI(interpreted : false, owner : "user-service", type : "user", usesActivationId : false)
+}
+
+type TestUserContainer {
+  userById(userId: ID! @ARI(interpreted : true, owner : "user-service", type : "user", usesActivationId : false)): TestUser
+}
+
+type TestUserNested {
+  email: String
+  id: ID! @ARI(interpreted : true, owner : "user-service", type : "user", usesActivationId : false)
+  user(userId: ID! @ARI(interpreted : true, owner : "user-service", type : "user", usesActivationId : false)): TestUserNested
+}
+
+type TopLevelQueryTest {
+  comments(id: ID!): [Comment]
+}
+
+"An Applied Directive is an instances of a directive as applied to a schema element. This type is NOT specified by the graphql specification presently."
+type _AppliedDirective {
+  args: [_DirectiveArgument!]!
+  name: String!
+}
+
+"Directive arguments can have names and values.  The values are in graphql SDL syntax printed as a string. This type is NOT specified by the graphql specification presently."
+type _DirectiveArgument {
+  name: String!
+  value: String!
+}
+
+enum AccountStatus {
+  active
+  closed
+  inactive
+}
+
+"""
+This enum is the names of API groupings within the total Atlassian API.
+
+This is used by our documentation tooling to group together types and fields into logical groups
+"""
+enum ApiGroup {
+  COMPASS
+  FORGE
+  JIRA
+  POLARIS
+}
+
+enum GrantCheckProduct {
+  CONFLUENCE
+  JIRA
+  JIRA_SERVICEDESK
+}
+
+enum RateLimitingCurrency {
+  ISSUES_SERVICE
+  TESTING_SERVICE
+  USERS_SERVICE
+  USERS_SERVICE_DRY_RUN @disabled
+}
+
+enum Scope {
+  EPIC_VIEW_TITLE @value(val : "epic:view_title")
+  ISSUE_ADMIN @value(val : "issue:admin")
+  ISSUE_READ @value(val : "issue:read")
+  ISSUE_VIEW_EPIC @value(val : "issue:view_epic")
+  ISSUE_VIEW_LINKED_ISSUES @value(val : "issue:view_linked_issues")
+  ISSUE_VIEW_USER @value(val : "issue:view_user")
+  ISSUE_WRITE @value(val : "issue:write")
+  PROJECT_VIEW @value(val : "project:view")
+  READ_HYDRATED_FIELD @value(val : "read:hydrated-field")
+  READ_JIRA_EPICS @value(val : "read:jira-epics")
+  READ_JIRA_ISSUES @value(val : "read:jira-issues")
+  READ_JIRA_PROJECT @value(val : "read_jira_project")
+  READ_RESTRICTED_EPIC_FIELD @value(val : "read:restricted-epic-field")
+  USER_VIEW_EMAIL @value(val : "user:view_email")
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+"This is a custom Scalar that does something custom (but really its just JSON)"
+scalar CustomScalar
+
+"DateTime type"
+scalar DateTime
+
+"A JSON scalar"
+scalar JSON
+
+"Long type"
+scalar Long
+
+"A URL Scala type"
+scalar URL
+
+input IssueInputWithARI @apiGroup(name : JIRA) {
+  ari: String @ARI(interpreted : false, owner : "jira", type : "issue", usesActivationId : false)
+  other: OtherIssueInput
+}
+
+"Used to prove Long can be used for input"
+input LongInput {
+  longField: Long
+}
+
+"This allows you to hydrate new values into fields"
+input NadelHydrationArgument {
+  name: String!
+  value: String!
+}
+
+input OtherIssueInput @apiGroup(name : JIRA) {
+  filterCloud: ID @CloudID
+}
+
+input UserSearch {
+  spaceId: ID! @ARI(interpreted : true, owner : "user-service", type : "space", usesActivationId : false)
+  status: [Status!]
+}

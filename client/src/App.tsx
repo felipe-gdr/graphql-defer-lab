@@ -4,24 +4,25 @@ import { graphql } from 'babel-plugin-relay/macro';
 import {loadQuery, RelayEnvironmentProvider, usePreloadedQuery,} from 'react-relay/hooks';
 import RelayEnvironment from './RelayEnvironment';
 import type { AppMainQuery } from './__generated__/AppMainQuery.graphql'
-import { HelloComponent } from './hello'
-import { DeferredComponent } from './deferred'
+import { UserComponent } from './user'
+import { IssueComponent } from './issue'
 
 // Define a query
 const MainQuery = graphql`
-    query AppMainQuery {
-        hello {
-            ...hello
+    query AppMainQuery($userId: ID!) {
+        user: userById(userId: $userId) {
+            ...user
         }
-        deferred {
-            ...deferred @custom 
-        }
+        ...issue @defer(label: "issueDefer")
     }
 `;
 
 // Immediately load the query as our app starts. For a real app, we'd move this
 // into our routing configuration, preloading data as we transition to new routes.
-const preloadedQuery = loadQuery(RelayEnvironment, MainQuery, {});
+const preloadedQuery = loadQuery(RelayEnvironment, MainQuery, {
+    userId: 'ari:cloud:user-service:123:user/USER-1',
+    issueId: 'ISSUE-1'
+});
 
 // Inner component that reads the preloaded query results via `usePreloadedQuery()`.
 // This works as follows:
@@ -37,8 +38,8 @@ function App(props: any) {
     return (
         <div className="App">
             <header className="App-header">
-                {data.hello && <HelloComponent hello={data.hello} /> }
-                {data.deferred && <DeferredComponent deferred={data.deferred} /> }
+                {data.user && <UserComponent user={data.user} /> }
+                {data && <Suspense fallback={'loading...'}><IssueComponent data={data} /></Suspense> }
             </header>
         </div>
     );
