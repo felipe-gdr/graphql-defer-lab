@@ -1,0 +1,21 @@
+{
+  "name": "graphql-js-server-defer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": ""
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-graphql": "experimental-stream-defer",
+    "graphql": "experimental-stream-defer"
+  }
+}

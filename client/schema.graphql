@@ -1,0 +1,15 @@
+  type Query {
+    hello: Hello!
+    deferred: Deferred!
+  }
+
+  type Hello {
+      message: String
+  }
+
+  type Deferred {
+      message: String
+  }
+
+  directive @defer(label: String!) on INLINE_FRAGMENT | FRAGMENT_SPREAD
+  directive @custom on INLINE_FRAGMENT | FRAGMENT_SPREAD
