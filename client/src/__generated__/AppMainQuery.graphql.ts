@@ -8,10 +8,7 @@ export type AppMainQueryVariables = {
     userId: string;
 };
 export type AppMainQueryResponse = {
-    readonly user: {
-        readonly " $fragmentRefs": FragmentRefs<"user">;
-    } | null;
-    readonly " $fragmentRefs": FragmentRefs<"issue">;
+    readonly " $fragmentRefs": FragmentRefs<"user" | "issue" | "project">;
 };
 export type AppMainQuery = {
     readonly response: AppMainQueryResponse;
@@ -24,30 +21,41 @@ export type AppMainQuery = {
 query AppMainQuery(
   $userId: ID!
 ) {
-  user: userById(userId: $userId) {
-    ...user
-    id
-  }
+  ...user
   ...issue @defer(label: "AppMainQuery$defer$issueDefer")
+  ...project @defer(label: "AppMainQuery$defer$projectDefer")
+}
+
+fragment epic on JiraEpic {
+  title
 }
 
 fragment issue on Query {
-  issueById(issueId: "ISSUE-1") {
+  issue: issueByAri(issueId: "ari:cloud:jira:myCloud1:issue/2018") {
     id
-    project {
-      title
+    user {
+      email
       id
     }
-    user {
+    linkedJiraEpic {
+      ...epic
       id
-      email
     }
   }
 }
 
-fragment user on TestUser {
-  id
-  email
+fragment project on Query {
+  project: jiraProject(projectId: "1") {
+    projectId
+    title
+  }
+}
+
+fragment user on Query {
+  user: userById(userId: $userId) {
+    id
+    email
+  }
 }
 */
 
@@ -59,30 +67,27 @@ var v0 = [
     "name": "userId"
   }
 ],
-v1 = [
-  {
-    "kind": "Variable",
-    "name": "userId",
-    "variableName": "userId"
-  }
-],
-v2 = {
+v1 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "id",
   "storageKey": null
 },
-v3 = [
-  (v2/*: any*/),
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "email",
-    "storageKey": null
-  }
-];
+v2 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "email",
+  "storageKey": null
+},
+v3 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "title",
+  "storageKey": null
+};
 return {
   "fragment": {
     "argumentDefinitions": (v0/*: any*/),
@@ -91,20 +96,9 @@ return {
     "name": "AppMainQuery",
     "selections": [
       {
-        "alias": "user",
-        "args": (v1/*: any*/),
-        "concreteType": "TestUser",
-        "kind": "LinkedField",
-        "name": "userById",
-        "plural": false,
-        "selections": [
-          {
-            "args": null,
-            "kind": "FragmentSpread",
-            "name": "user"
-          }
-        ],
-        "storageKey": null
+        "args": null,
+        "kind": "FragmentSpread",
+        "name": "user"
       },
       {
         "kind": "Defer",
@@ -113,6 +107,16 @@ return {
             "args": null,
             "kind": "FragmentSpread",
             "name": "issue"
+          }
+        ]
+      },
+      {
+        "kind": "Defer",
+        "selections": [
+          {
+            "args": null,
+            "kind": "FragmentSpread",
+            "name": "project"
           }
         ]
       }
@@ -128,12 +132,21 @@ return {
     "selections": [
       {
         "alias": "user",
-        "args": (v1/*: any*/),
+        "args": [
+          {
+            "kind": "Variable",
+            "name": "userId",
+            "variableName": "userId"
+          }
+        ],
         "concreteType": "TestUser",
         "kind": "LinkedField",
         "name": "userById",
         "plural": false,
-        "selections": (v3/*: any*/),
+        "selections": [
+          (v1/*: any*/),
+          (v2/*: any*/)
+        ],
         "storageKey": null
       },
       {
@@ -142,39 +155,20 @@ return {
         "label": "AppMainQuery$defer$issueDefer",
         "selections": [
           {
-            "alias": null,
+            "alias": "issue",
             "args": [
               {
                 "kind": "Literal",
                 "name": "issueId",
-                "value": "ISSUE-1"
+                "value": "ari:cloud:jira:myCloud1:issue/2018"
               }
             ],
             "concreteType": "Issue",
             "kind": "LinkedField",
-            "name": "issueById",
+            "name": "issueByAri",
             "plural": false,
             "selections": [
-              (v2/*: any*/),
-              {
-                "alias": null,
-                "args": null,
-                "concreteType": "Project",
-                "kind": "LinkedField",
-                "name": "project",
-                "plural": false,
-                "selections": [
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "title",
-                    "storageKey": null
-                  },
-                  (v2/*: any*/)
-                ],
-                "storageKey": null
-              },
+              (v1/*: any*/),
               {
                 "alias": null,
                 "args": null,
@@ -182,25 +176,73 @@ return {
                 "kind": "LinkedField",
                 "name": "user",
                 "plural": false,
-                "selections": (v3/*: any*/),
+                "selections": [
+                  (v2/*: any*/),
+                  (v1/*: any*/)
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "JiraEpic",
+                "kind": "LinkedField",
+                "name": "linkedJiraEpic",
+                "plural": false,
+                "selections": [
+                  (v3/*: any*/),
+                  (v1/*: any*/)
+                ],
                 "storageKey": null
               }
             ],
-            "storageKey": "issueById(issueId:\"ISSUE-1\")"
+            "storageKey": "issueByAri(issueId:\"ari:cloud:jira:myCloud1:issue/2018\")"
+          }
+        ]
+      },
+      {
+        "if": null,
+        "kind": "Defer",
+        "label": "AppMainQuery$defer$projectDefer",
+        "selections": [
+          {
+            "alias": "project",
+            "args": [
+              {
+                "kind": "Literal",
+                "name": "projectId",
+                "value": "1"
+              }
+            ],
+            "concreteType": "JiraProject",
+            "kind": "LinkedField",
+            "name": "jiraProject",
+            "plural": false,
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "projectId",
+                "storageKey": null
+              },
+              (v3/*: any*/)
+            ],
+            "storageKey": "jiraProject(projectId:\"1\")"
           }
         ]
       }
     ]
   },
   "params": {
-    "cacheID": "422dd127b16318bbfcb30b6c7f6e0d76",
+    "cacheID": "963b1628118f7847cd60016bf631d048",
     "id": null,
     "metadata": {},
     "name": "AppMainQuery",
     "operationKind": "query",
-    "text": "query AppMainQuery(\n  $userId: ID!\n) {\n  user: userById(userId: $userId) {\n    ...user\n    id\n  }\n  ...issue @defer(label: \"AppMainQuery$defer$issueDefer\")\n}\n\nfragment issue on Query {\n  issueById(issueId: \"ISSUE-1\") {\n    id\n    project {\n      title\n      id\n    }\n    user {\n      id\n      email\n    }\n  }\n}\n\nfragment user on TestUser {\n  id\n  email\n}\n"
+    "text": "query AppMainQuery(\n  $userId: ID!\n) {\n  ...user\n  ...issue @defer(label: \"AppMainQuery$defer$issueDefer\")\n  ...project @defer(label: \"AppMainQuery$defer$projectDefer\")\n}\n\nfragment epic on JiraEpic {\n  title\n}\n\nfragment issue on Query {\n  issue: issueByAri(issueId: \"ari:cloud:jira:myCloud1:issue/2018\") {\n    id\n    user {\n      email\n      id\n    }\n    linkedJiraEpic {\n      ...epic\n      id\n    }\n  }\n}\n\nfragment project on Query {\n  project: jiraProject(projectId: \"1\") {\n    projectId\n    title\n  }\n}\n\nfragment user on Query {\n  user: userById(userId: $userId) {\n    id\n    email\n  }\n}\n"
   }
 };
 })();
-(node as any).hash = 'be270b1126f551e2b80a86fbefad24c6';
+(node as any).hash = 'ffa79ed19bb712f8588bd4c52ea114b4';
 export default node;

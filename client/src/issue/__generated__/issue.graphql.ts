@@ -5,15 +5,13 @@
 import { ReaderFragment } from "relay-runtime";
 import { FragmentRefs } from "relay-runtime";
 export type issue = {
-    readonly issueById: {
+    readonly issue: {
         readonly id: string;
-        readonly project: {
-            readonly title: string;
-            readonly id: string;
-        } | null;
         readonly user: {
-            readonly id: string;
             readonly email: string | null;
+        } | null;
+        readonly linkedJiraEpic: {
+            readonly " $fragmentRefs": FragmentRefs<"epic">;
         } | null;
     } | null;
     readonly " $refType": "issue";
@@ -26,52 +24,31 @@ export type issue$key = {
 
 
 
-const node: ReaderFragment = (function(){
-var v0 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "id",
-  "storageKey": null
-};
-return {
+const node: ReaderFragment = {
   "argumentDefinitions": [],
   "kind": "Fragment",
   "metadata": null,
   "name": "issue",
   "selections": [
     {
-      "alias": null,
+      "alias": "issue",
       "args": [
         {
           "kind": "Literal",
           "name": "issueId",
-          "value": "ISSUE-1"
+          "value": "ari:cloud:jira:myCloud1:issue/2018"
         }
       ],
       "concreteType": "Issue",
       "kind": "LinkedField",
-      "name": "issueById",
+      "name": "issueByAri",
       "plural": false,
       "selections": [
-        (v0/*: any*/),
         {
           "alias": null,
           "args": null,
-          "concreteType": "Project",
-          "kind": "LinkedField",
-          "name": "project",
-          "plural": false,
-          "selections": [
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "title",
-              "storageKey": null
-            },
-            (v0/*: any*/)
-          ],
+          "kind": "ScalarField",
+          "name": "id",
           "storageKey": null
         },
         {
@@ -82,7 +59,6 @@ return {
           "name": "user",
           "plural": false,
           "selections": [
-            (v0/*: any*/),
             {
               "alias": null,
               "args": null,
@@ -92,14 +68,29 @@ return {
             }
           ],
           "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "concreteType": "JiraEpic",
+          "kind": "LinkedField",
+          "name": "linkedJiraEpic",
+          "plural": false,
+          "selections": [
+            {
+              "args": null,
+              "kind": "FragmentSpread",
+              "name": "epic"
+            }
+          ],
+          "storageKey": null
         }
       ],
-      "storageKey": "issueById(issueId:\"ISSUE-1\")"
+      "storageKey": "issueByAri(issueId:\"ari:cloud:jira:myCloud1:issue/2018\")"
     }
   ],
   "type": "Query",
   "abstractKey": null
 };
-})();
-(node as any).hash = '3036d8d63edc84a907b64026b1ac193d';
+(node as any).hash = '73fe64a27f03f7951d0ca5d44310a315';
 export default node;

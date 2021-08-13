@@ -6,14 +6,14 @@ import RelayEnvironment from './RelayEnvironment';
 import type { AppMainQuery } from './__generated__/AppMainQuery.graphql'
 import { UserComponent } from './user'
 import { IssueComponent } from './issue'
+import { ProjectComponent } from './project'
 
 // Define a query
 const MainQuery = graphql`
     query AppMainQuery($userId: ID!) {
-        user: userById(userId: $userId) {
-            ...user
-        }
+        ...user
         ...issue @defer(label: "issueDefer")
+        ...project @defer(label: "projectDefer")
     }
 `;
 
@@ -38,8 +38,9 @@ function App(props: any) {
     return (
         <div className="App">
             <header className="App-header">
-                {data.user && <UserComponent user={data.user} /> }
+                {data && <UserComponent data={data} /> }
                 {data && <Suspense fallback={'loading...'}><IssueComponent data={data} /></Suspense> }
+                {data && <Suspense fallback={'loading...'}><ProjectComponent data={data} /></Suspense> }
             </header>
         </div>
     );

@@ -4,66 +4,61 @@
 
 import { ReaderFragment } from "relay-runtime";
 import { FragmentRefs } from "relay-runtime";
-export type user = {
-    readonly user: {
-        readonly id: string;
-        readonly email: string | null;
+export type project = {
+    readonly project: {
+        readonly projectId: string;
+        readonly title: string;
     } | null;
-    readonly " $refType": "user";
+    readonly " $refType": "project";
 };
-export type user$data = user;
-export type user$key = {
-    readonly " $data"?: user$data;
-    readonly " $fragmentRefs": FragmentRefs<"user">;
+export type project$data = project;
+export type project$key = {
+    readonly " $data"?: project$data;
+    readonly " $fragmentRefs": FragmentRefs<"project">;
 };
 
 
 
 const node: ReaderFragment = {
-  "argumentDefinitions": [
-    {
-      "kind": "RootArgument",
-      "name": "userId"
-    }
-  ],
+  "argumentDefinitions": [],
   "kind": "Fragment",
   "metadata": null,
-  "name": "user",
+  "name": "project",
   "selections": [
     {
-      "alias": "user",
+      "alias": "project",
       "args": [
         {
-          "kind": "Variable",
-          "name": "userId",
-          "variableName": "userId"
+          "kind": "Literal",
+          "name": "projectId",
+          "value": "1"
         }
       ],
-      "concreteType": "TestUser",
+      "concreteType": "JiraProject",
       "kind": "LinkedField",
-      "name": "userById",
+      "name": "jiraProject",
       "plural": false,
       "selections": [
         {
           "alias": null,
           "args": null,
           "kind": "ScalarField",
-          "name": "id",
+          "name": "projectId",
           "storageKey": null
         },
         {
           "alias": null,
           "args": null,
           "kind": "ScalarField",
-          "name": "email",
+          "name": "title",
           "storageKey": null
         }
       ],
-      "storageKey": null
+      "storageKey": "jiraProject(projectId:\"1\")"
     }
   ],
   "type": "Query",
   "abstractKey": null
 };
-(node as any).hash = 'a735324b2761e44ba6f6d91d3359f086';
+(node as any).hash = 'f9ac443ddf019a695782719e2d379d6f';
 export default node;
