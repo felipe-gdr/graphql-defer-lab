@@ -5,7 +5,9 @@
 import { ReaderFragment } from "relay-runtime";
 import { FragmentRefs } from "relay-runtime";
 export type epic = {
-    readonly title: string | null;
+    readonly jiraEpic: {
+        readonly title: string | null;
+    } | null;
     readonly " $refType": "epic";
 };
 export type epic$data = epic;
@@ -25,13 +27,24 @@ const node: ReaderFragment = {
     {
       "alias": null,
       "args": null,
-      "kind": "ScalarField",
-      "name": "title",
+      "concreteType": "JiraEpic",
+      "kind": "LinkedField",
+      "name": "jiraEpic",
+      "plural": false,
+      "selections": [
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "title",
+          "storageKey": null
+        }
+      ],
       "storageKey": null
     }
   ],
-  "type": "JiraEpic",
+  "type": "Issue",
   "abstractKey": null
 };
-(node as any).hash = '128dd5d31929ffe66d408d3562f803b1';
+(node as any).hash = '38c2f5bc486c457f2974f8ce3dc87ea2';
 export default node;

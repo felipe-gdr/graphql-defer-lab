@@ -7,6 +7,7 @@ import type { AppMainQuery } from './__generated__/AppMainQuery.graphql'
 import { UserComponent } from './user'
 import { IssueComponent } from './issue'
 import { ProjectComponent } from './project'
+import { Loading } from './styling/loading';
 
 // Define a query
 const MainQuery = graphql`
@@ -39,8 +40,8 @@ function App(props: any) {
         <div className="App">
             <header className="App-header">
                 {data && <UserComponent data={data} /> }
-                {data && <Suspense fallback={'loading...'}><IssueComponent data={data} /></Suspense> }
-                {data && <Suspense fallback={'loading...'}><ProjectComponent data={data} /></Suspense> }
+                {data && <Suspense fallback={<Loading size="big" />}><IssueComponent data={data} /></Suspense> }
+                {data && <Suspense fallback={<Loading />}><ProjectComponent data={data} /></Suspense> }
             </header>
         </div>
     );
@@ -54,7 +55,7 @@ function App(props: any) {
 function AppRoot(props: any) {
     return (
         <RelayEnvironmentProvider environment={RelayEnvironment}>
-            <Suspense fallback={'Loading...'}>
+            <Suspense fallback={''}>
                 <App preloadedQuery={preloadedQuery}/>
             </Suspense>
         </RelayEnvironmentProvider>

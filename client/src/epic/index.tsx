@@ -2,10 +2,13 @@ import React from "react";
 import { graphql } from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay/hooks";
 import type { epic$key } from "./__generated__/epic.graphql";
+import { Section } from "../styling/section";
 
 const epicFragment = graphql`
-  fragment epic on JiraEpic {
-    title
+  fragment epic on Issue {
+      jiraEpic {
+        title
+      }
   }
 
 `;
@@ -17,5 +20,5 @@ type Props = {
 export function EpicComponent(props: Props) {
   const epicData = useFragment(epicFragment, props.data);
 
-  return <div>{epicData?.title || "Unknow"}</div>;
+  return <Section size="small" title="Epic" hint="hydrated field">title: {epicData?.jiraEpic?.title || "Unknow"}</Section>;
 }

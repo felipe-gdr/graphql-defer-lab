@@ -10,9 +10,7 @@ export type issue = {
         readonly user: {
             readonly email: string | null;
         } | null;
-        readonly linkedJiraEpic: {
-            readonly " $fragmentRefs": FragmentRefs<"epic">;
-        } | null;
+        readonly " $fragmentRefs": FragmentRefs<"epic">;
     } | null;
     readonly " $refType": "issue";
 };
@@ -70,20 +68,14 @@ const node: ReaderFragment = {
           "storageKey": null
         },
         {
-          "alias": null,
-          "args": null,
-          "concreteType": "JiraEpic",
-          "kind": "LinkedField",
-          "name": "linkedJiraEpic",
-          "plural": false,
+          "kind": "Defer",
           "selections": [
             {
               "args": null,
               "kind": "FragmentSpread",
               "name": "epic"
             }
-          ],
-          "storageKey": null
+          ]
         }
       ],
       "storageKey": "issueByAri(issueId:\"ari:cloud:jira:myCloud1:issue/2018\")"
@@ -92,5 +84,5 @@ const node: ReaderFragment = {
   "type": "Query",
   "abstractKey": null
 };
-(node as any).hash = '73fe64a27f03f7951d0ca5d44310a315';
+(node as any).hash = '89283a4298de4ba217f19c63a59dc685';
 export default node;

@@ -3,6 +3,7 @@ import React from 'react';
 import { graphql } from 'babel-plugin-relay/macro';
 import {useFragment,} from 'react-relay/hooks';
 import type { project$key } from './__generated__/project.graphql'
+import { Section } from '../styling/section'
 
 const projectFragment = graphql`
     fragment project on Query {
@@ -23,9 +24,7 @@ export function ProjectComponent(props: Props) {
         props.data
     );
 
-    debugger;
-
     return (
-        <div>{projectData?.project?.title || 'Unknow'}</div>
+        <Section title="Project">title: {projectData?.project?.title || 'Unknow'}</Section>
     );
 }

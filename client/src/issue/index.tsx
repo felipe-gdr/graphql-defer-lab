@@ -1,8 +1,10 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { graphql } from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay/hooks";
 import type { issue$key } from "./__generated__/issue.graphql";
 import { EpicComponent } from "../epic";
+import { Section } from '../styling/section'
+import { Loading } from '../styling/loading'
 
 const issueFragment = graphql`
   fragment issue on Query {
@@ -12,9 +14,7 @@ const issueFragment = graphql`
         email
       }
 
-      linkedJiraEpic {
-        ...epic
-      }
+      ...epic @defer(label: "epicDefer")
     }
   }
 `;
@@ -27,11 +27,11 @@ export function IssueComponent(props: Props) {
   const issueData = useFragment(issueFragment, props.data);
 
   return (
-    <div>
-      {issueData?.issue?.id || "Unknow"}
-      {issueData?.issue?.linkedJiraEpic && (
-        <EpicComponent data={issueData?.issue?.linkedJiraEpic} />
+    <Section title="Issue" size="big">
+      id: {issueData?.issue?.id || "Unknow"}
+      {issueData?.issue && (
+        <Suspense fallback={<Loading size="small" hint="hydrated field"/>} ><EpicComponent data={issueData?.issue} /></Suspense>
       )}
-    </div>
+    </Section>
   );
 }

@@ -26,8 +26,11 @@ query AppMainQuery(
   ...project @defer(label: "AppMainQuery$defer$projectDefer")
 }
 
-fragment epic on JiraEpic {
-  title
+fragment epic on Issue {
+  jiraEpic {
+    title
+    id
+  }
 }
 
 fragment issue on Query {
@@ -37,10 +40,7 @@ fragment issue on Query {
       email
       id
     }
-    linkedJiraEpic {
-      ...epic
-      id
-    }
+    ...epic @defer(label: "issue$defer$epicDefer")
   }
 }
 
@@ -183,17 +183,24 @@ return {
                 "storageKey": null
               },
               {
-                "alias": null,
-                "args": null,
-                "concreteType": "JiraEpic",
-                "kind": "LinkedField",
-                "name": "linkedJiraEpic",
-                "plural": false,
+                "if": null,
+                "kind": "Defer",
+                "label": "issue$defer$epicDefer",
                 "selections": [
-                  (v3/*: any*/),
-                  (v1/*: any*/)
-                ],
-                "storageKey": null
+                  {
+                    "alias": null,
+                    "args": null,
+                    "concreteType": "JiraEpic",
+                    "kind": "LinkedField",
+                    "name": "jiraEpic",
+                    "plural": false,
+                    "selections": [
+                      (v3/*: any*/),
+                      (v1/*: any*/)
+                    ],
+                    "storageKey": null
+                  }
+                ]
               }
             ],
             "storageKey": "issueByAri(issueId:\"ari:cloud:jira:myCloud1:issue/2018\")"
@@ -235,12 +242,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "963b1628118f7847cd60016bf631d048",
+    "cacheID": "318da1943c4d294d30229cf80ce65d78",
     "id": null,
     "metadata": {},
     "name": "AppMainQuery",
     "operationKind": "query",
-    "text": "query AppMainQuery(\n  $userId: ID!\n) {\n  ...user\n  ...issue @defer(label: \"AppMainQuery$defer$issueDefer\")\n  ...project @defer(label: \"AppMainQuery$defer$projectDefer\")\n}\n\nfragment epic on JiraEpic {\n  title\n}\n\nfragment issue on Query {\n  issue: issueByAri(issueId: \"ari:cloud:jira:myCloud1:issue/2018\") {\n    id\n    user {\n      email\n      id\n    }\n    linkedJiraEpic {\n      ...epic\n      id\n    }\n  }\n}\n\nfragment project on Query {\n  project: jiraProject(projectId: \"1\") {\n    projectId\n    title\n  }\n}\n\nfragment user on Query {\n  user: userById(userId: $userId) {\n    id\n    email\n  }\n}\n"
+    "text": "query AppMainQuery(\n  $userId: ID!\n) {\n  ...user\n  ...issue @defer(label: \"AppMainQuery$defer$issueDefer\")\n  ...project @defer(label: \"AppMainQuery$defer$projectDefer\")\n}\n\nfragment epic on Issue {\n  jiraEpic {\n    title\n    id\n  }\n}\n\nfragment issue on Query {\n  issue: issueByAri(issueId: \"ari:cloud:jira:myCloud1:issue/2018\") {\n    id\n    user {\n      email\n      id\n    }\n    ...epic @defer(label: \"issue$defer$epicDefer\")\n  }\n}\n\nfragment project on Query {\n  project: jiraProject(projectId: \"1\") {\n    projectId\n    title\n  }\n}\n\nfragment user on Query {\n  user: userById(userId: $userId) {\n    id\n    email\n  }\n}\n"
   }
 };
 })();

@@ -22,7 +22,7 @@ export function fetchImpl(
                 //     boundary,
                 // });
                 return reader.read().then(function sendNext({ value, done }) {
-                    console.log('reading', textDecoder.decode(value));
+                    console.log(textDecoder.decode(value));
                     
                     if (!done) {
                         let plaintext;

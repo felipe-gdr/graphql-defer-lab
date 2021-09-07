@@ -207,7 +207,7 @@ type Issue @apiGroup(name : JIRA) {
   
   * __read:jira-epics__
   """
-  jiraEpic: JiraEpic @scopes(product : JIRA, required : [READ_JIRA_EPICS])
+  #jiraEpic: JiraEpic @scopes(product : JIRA, required : [READ_JIRA_EPICS])
   jiraProject: JiraProject
   jiraProjectWithScopes: JiraProject @renamed(from : "jiraProject")
   keyword: String! @renamed(from : "key")
@@ -223,7 +223,7 @@ type Issue @apiGroup(name : JIRA) {
   linkedIssueIds: [ID] @scopes(required : [ISSUE_VIEW_LINKED_ISSUES])
   " Shows how recursive stitching may work"
   linkedIssues: [Issue] @hydrated(arguments : [{name : "issueIds", value : "$source.linkedIssueIds"}], batchSize : 200, field : "batchIssueById", identifiedBy : "id", indexed : false, service : "Issues")
-  linkedJiraEpic: JiraEpic @hydrated(arguments : [{name : "epicId", value : "$source.linkedJiraEpicId"}], batchSize : 200, field : "jiraEpic", identifiedBy : "id", indexed : false, service : "Issues")
+  jiraEpic: JiraEpic @hydrated(arguments : [{name : "epicId", value : "$source.linkedJiraEpicId"}], batchSize : 200, field : "jiraEpic", identifiedBy : "id", indexed : false, service : "Issues")
   project: Project
   """
   
